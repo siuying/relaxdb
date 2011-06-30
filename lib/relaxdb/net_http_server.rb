@@ -4,16 +4,18 @@ module RelaxDB
     
     attr_reader :host, :port
       
-    def initialize(host, port, user = nil, pass = nil)
+    def initialize(host, port, user = nil, pass = nil, ssl = false)
       @host = host
       @port = port
       @user = user
       @pass = pass
+      @ssl = ssl
     end
     
     def cx
       unless @cx && @cx.active?
         @cx = Net::HTTP.start(@host, @port)
+        @cx.use_ssl = true if @ssl
       end
       @cx
     end
@@ -52,6 +54,7 @@ module RelaxDB
         @cx = nil
         res = cx.request(req)
       end
+
       if (not res.kind_of?(Net::HTTPSuccess))
         handle_error(req, res)
       end
@@ -59,7 +62,7 @@ module RelaxDB
     end      
   
     def to_s
-      "http://#{uri_login_prefix}#{@host}:#{@port}/"
+      "http#{"s" if @ssl}://#{uri_login_prefix}#{@host}:#{@port}/"
     end
 
     def uri_login_prefix
