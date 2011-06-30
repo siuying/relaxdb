@@ -14,8 +14,9 @@ module RelaxDB
     
     def cx
       unless @cx && @cx.active?
-        @cx = Net::HTTP.start(@host, @port)
+        @cx = Net::HTTP.new(@host, @port)
         @cx.use_ssl = true if @ssl
+        @cx.start
       end
       @cx
     end
