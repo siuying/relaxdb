@@ -4,9 +4,11 @@ module RelaxDB
     
     attr_reader :host, :port
       
-    def initialize(host, port)
+    def initialize(host, port, user = nil, pass = nil)
       @host = host
       @port = port
+      @user = user
+      @pass = pass
     end
     
     def cx
@@ -44,12 +46,12 @@ module RelaxDB
 
     def request(req)
       begin
+        req.basic_auth @user, @pass if @user && @pass
         res = cx.request(req)
       rescue
         @cx = nil
         res = cx.request(req)
       end
-      
       if (not res.kind_of?(Net::HTTPSuccess))
         handle_error(req, res)
       end
@@ -57,8 +59,15 @@ module RelaxDB
     end      
   
     def to_s
-      "http://#{@host}:#{@port}/"
+      "http://#{uri_login_prefix}#{@host}:#{@port}/"
     end
+
+    def uri_login_prefix
+      if @user
+        "#{@user}#{":#{@pass}" if @pass}@"
+      end
+    end
+
   
     private
 
